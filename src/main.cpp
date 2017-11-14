@@ -1,29 +1,6 @@
-#include <iostream>
-#include <opencv2/opencv.hpp>
-
-using namespace std;
-using namespace cv;
-
-void mythreshold(Mat &img, uchar T)
-{
-	int n1 = img.rows;
-	int nc = img.cols * img.channels();
-	if (img.isContinuous())//判断图像是否连续
-	{
-		nc = nc * n1;
-		n1 = 1;
-	}
-	for (int i = 0; i < n1; i++)
-	{
-		uchar *p = img.ptr<uchar>(i);
-		for (int j = 0; j < nc; j++)
-		{
-			if (p[j] > T)
-				p[j] = 0;
-			else p[j] = 255;
-		}
-	}
-}
+#include "my.h"
+#include "location.h"
+#include "recognize.h"
 
 int main()
 {
@@ -35,6 +12,7 @@ int main()
 	mythreshold(img, 100);					//二值化
 	imshow("二值化", img);
 	Mat temp = img.clone();
+	//location(img, temp);
 
 	float angle = 0;
 	//hierarchy[i][0]：第i条轮廓下一条轮廓
@@ -65,8 +43,9 @@ int main()
 
 		}
 	}
+#ifdef DEBUG
 	cout << "轮廓总数为 " << contours.size() << endl;
-	
+#endif
 	//简单进行图像旋转
 	Point center = Point(img.cols / 2, img.rows / 2);
 	double scale = 1.0;
