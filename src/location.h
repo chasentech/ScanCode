@@ -2,6 +2,6 @@
 #ifndef _LOCATION_H_
 #define _LOCATION_H_
 
-extern void location(Mat &srcimg, Mat &dstimg);
+extern void rotate(Mat &srcimg, Mat &dstimg);
 
 #endif
