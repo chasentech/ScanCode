@@ -1,3 +1,3 @@
 # ScanCode
 
-OpenCVÊ¶±ğ¶şÎ¬Âë
+OpenCVè¯†åˆ«äºŒç»´ç 
