@@ -66,7 +66,8 @@ int main()
 		}
 	}
 	cout << "轮廓总数为 " << contours.size() << endl;
-
+	
+	//简单进行图像旋转
 	Point center = Point(img.cols / 2, img.rows / 2);
 	double scale = 1.0;
 	Mat rotMat(2, 3, CV_32FC1);
