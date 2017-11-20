@@ -4,10 +4,10 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
-#define DEBUG
-
 using namespace std;
 using namespace cv;
+
+#define DEBUG
 
 extern void mythreshold(Mat &img, uchar T);
 
