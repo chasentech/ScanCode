@@ -18,19 +18,17 @@ private:
 
 	Point center;	//二维码旋转中心
 	float angle;	//二维码旋转角度
-public:
-	Location(Mat &imgg);//构造函数
 
+	int judge_point(Point point1, Point point2, Point point);
 	void point_locat();		//定位二维码四个点
 	void rotate_info();		//得到旋转信息
 	void retate();			//进行旋转
-
-	void get_dstimg(Mat &img);
-
+public:
+	Location(Mat &imgg);//构造函数
 	~Location();		//析构函数
 
+	void located();		//执行
+	void get_dstimg(Mat &img);	//得到结果
 };
-
-extern void rotate(Mat &srcimg, Mat &dstimg);
 
 #endif
