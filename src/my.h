@@ -8,7 +8,6 @@
 using namespace std;
 using namespace cv;
 
-//DEBUGģʽ
 #define DEBUG
 
 extern void mythreshold(Mat &img, uchar T);

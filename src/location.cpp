@@ -16,7 +16,7 @@ Location::~Location()
 }
 
 //判断point3在point1,point2所在事项的上下方
-int Location::judge_point(Point point1, Point point2, Point point)
+int judge_point(Point point1, Point point2, Point point)
 {
 	int k = (point2.y - point1.y) / (point1.x - point2.x);	//y方向与笛卡尔坐标系相反
 	int value = k * (point.x - point1.x) + point1.y - point.y;
@@ -24,11 +24,39 @@ int Location::judge_point(Point point1, Point point2, Point point)
 		return 1;
 	else return -1;
 }
+//找四个点最小包围矩形
+Rect Location::judge_area(Point point1, Point point2, Point point3, Point point4)
+{
+	int xx[4] = { point1.x, point2.x, point3.x, point4.x };
+	int yy[4] = { point1.y, point2.y, point3.y, point4.y };
+	int x_area[2] = { point1.x, point1.x };
+	int y_area[2] = { point2.y, point2.y };
+	for (int i = 0; i < 4; i++)
+	{
+		if (xx[i] < x_area[0]) x_area[0] = xx[i];
+		if (xx[i] > x_area[1]) x_area[1] = xx[i];
+
+		if (yy[i] < y_area[0]) y_area[0] = yy[i];
+		if (yy[i] > y_area[1]) y_area[1] = yy[i];
+	}
+	x_area[0] -= 40; if (x_area[0] < 0) x_area[0] = 0;
+	x_area[1] += 40; if (x_area[1] > img.cols) x_area[1] = img.cols;
+	y_area[0] -= 40; if (y_area[0] < 0) y_area[0] = 0;
+	y_area[1] += 40; if (y_area[1] > img.rows) y_area[1] = img.rows;
+	return Rect(x_area[0], y_area[0], x_area[1] - x_area[0], y_area[1] - y_area[0]);
+}
 //获取三个点的坐标
 void Location::point_locat()
 {
+	Mat img_gray;
+	cvtColor(img, img_gray, COLOR_BGR2GRAY);		//灰度化
+	imshow("test1", img);
+
+	mythreshold(img_gray, 100);					//二值化
+	imshow("二值化", img);
+
 	vector<Rect> rect;
-	Mat temp = img.clone();
+	Mat temp = img_gray.clone();
 	vector< vector <Point> > contours;
 	vector<Vec4i> hierarchy;				//保存轮廓信息
 											//hierarchy[i][0]：第i条轮廓下一条轮廓
@@ -40,18 +68,23 @@ void Location::point_locat()
 	{
 		Rect r0 = boundingRect(Mat(contours[i]));			//最小包围矩形
 		RotatedRect r1 = minAreaRect(Mat(contours[i]));		//最小旋转矩形
+		if (r0.area() < 100)		//轮廓面积大于100
+			continue;
 
-		if (r0.area() > 100 && hierarchy[i][2] > 0 && hierarchy[i][3] > 0)  //轮廓面积大于100 && 存在子轮廓 && 存在父轮廓
+		if (hierarchy[i][2] > 0 && hierarchy[i][3] > 0)  //存在子轮廓 && 存在父轮廓
 		{
 			int up_number = hierarchy[i][3];		//父轮廓序号
 			Rect r2 = boundingRect(Mat(contours[hierarchy[i][3]]));		//父轮廓
 			float w = r2.width;
 			float h = r2.height;
 			float rate = (float)(w / h);
-			if (rate < 1.2 && rate > 0.8)		//长宽比
+			float rate_area = (float)r2.area() / (float)r0.area();		//父轮廓与子轮廓之比
+			if (rate < 1.2 && rate > 0.8 && rate_area < 2)		//长宽比
 			{
 				rect.push_back(r2);
-				rectangle(img_show, r2, Scalar(20), 1);
+#ifdef DEBUG
+				rectangle(img_show, r2, Scalar(200), 1);
+#endif
 			}
 		}
 	}
@@ -62,10 +95,10 @@ void Location::point_locat()
 		point2 = Point(rect[1].x + (rect[1].width >> 1), rect[1].y + (rect[1].height >> 1));
 		point3 = Point(rect[2].x + (rect[2].width >> 1), rect[2].y + (rect[2].height >> 1));
 #ifdef DEBUG
-		cout << "point1=" << point1 << " point2" << point2 << " point3" << point3 << endl;
-		circle(img_show, point1, 4, Scalar(125), -1);
-		circle(img_show, point2, 8, Scalar(125), -1);
-		circle(img_show, point3, 12, Scalar(125), -1);
+		//cout << "point1=" << point1 << " point2" << point2 << " point3" << point3 << endl;
+		circle(img_show, point1, 4, Scalar(0, 255, 0), 2);
+		circle(img_show, point2, 8, Scalar(0, 255, 0), 2);
+		circle(img_show, point3, 12, Scalar(0, 255, 0), 2);
 #endif
 	}
 }
@@ -91,7 +124,6 @@ void Location::rotate_info()
 			else mark = 2;
 		}
 
-		Point point4;
 		switch (mark)
 		{
 			//point1为直角点
@@ -106,18 +138,18 @@ void Location::rotate_info()
 				}
 #ifdef DEBUG
 				cout << "mark=" << mark << endl;
-				cout << "point4=" << point4 << endl;
-				cout << "center=" << center << endl;
-				cout << "angle=" << angle * 180.0 / 3.1415 << endl;
-				circle(img_show, point4, 16, Scalar(125), -1);
-				circle(img_show, center, 8, Scalar(125), -1);
-				line(img_show, center, point2, Scalar(100), 2);
+				//cout << "point4=" << point4 << endl;
+				//cout << "center=" << center << endl;
+				//cout << "angle=" << angle * 180.0 / 3.1415 << endl;
+				circle(img_show, point4, 16, Scalar(0, 255, 0), 2);
+				circle(img_show, center, 8, Scalar(0, 255, 0), 2);
+				line(img_show, center, point2, Scalar(255, 0, 0), 2);
 #endif
 			break;
 			//point2为直角点
 			case 2:point4.x = point1.x + point3.x - point2.x; point4.y = point1.y + point3.y - point2.y;
-				center.x = (point1.x + point3.x) / 2;
-				center.y = (point1.y + point3.y) / 2;
+				center.x = (point1.x + point3.x) >> 1;
+				center.y = (point1.y + point3.y) >> 1;
 
 				angle = atan2(center.y - point2.y, point2.x - center.x);
 				if (judge_point(point1, point3, point2) < 0)
@@ -126,35 +158,41 @@ void Location::rotate_info()
 				}
 #ifdef DEBUG
 				cout << "mark=" << mark << endl;
-				cout << "point4=" << point4 << endl;
-				cout << "center=" << center << endl;
-				cout << "angle=" << angle * 180.0 / 3.1415 << endl;
-				circle(img_show, point4, 16, Scalar(125), -1);
-				circle(img_show, center, 8, Scalar(125), -1);
-				line(img_show, center, point2, Scalar(100), 2);
+				//cout << "point4=" << point4 << endl;
+				//cout << "center=" << center << endl;
+				//cout << "angle=" << angle * 180.0 / 3.1415 << endl;
+				circle(img_show, point4, 16, Scalar(0, 255, 0), 2);
+				circle(img_show, center, 8, Scalar(0, 255, 0), 2);
+				line(img_show, center, point2, Scalar(255, 0, 0), 2);
 #endif
 			break;
 			//point3为直角点
-			case 3:point4.x = point1.x + point2.x - point3.x; point4.y = point1.y + point2.y - point2.y;
+			case 3:point4.x = point1.x + point2.x - point3.x; point4.y = point1.y + point2.y - point3.y;
 				center.x = (point1.x + point2.x) >> 1;
 				center.y = (point1.y + point2.y) >> 1;
 
 				angle = atan2(center.y - point3.y, point3.x - center.x);
-				if (judge_point(point1, point1, point3) < 0)
+				if (judge_point(point1, point2, point3) < 0)
 				{
 					angle += 3.1415926;
 				}
 #ifdef DEBUG
 				cout << "mark=" << mark << endl;
-				cout << "point4=" << point4 << endl;
-				cout << "center=" << center << endl;
-				cout << "angle=" << angle * 180.0 / 3.1415 << endl;
-				circle(img_show, point4, 16, Scalar(125), -1);
-				circle(img_show, center, 8, Scalar(125), -1);
-				line(img_show, center, point2, Scalar(100), 2);
+				//cout << "point4=" << point4 << endl;
+				//cout << "center=" << center << endl;
+				//cout << "angle=" << angle * 180.0 / 3.1415 << endl;
+				circle(img_show, point4, 16, Scalar(0, 255, 0), 2);
+				circle(img_show, center, 8, Scalar(0, 255, 0), 2);
+				line(img_show, center, point2, Scalar(255, 0, 0), 2);
 #endif
 			break;
 		}
+		Rect rect_show = judge_area(point1, point2, point3, point4);
+#ifdef DEBUG
+		rectangle(img_show, rect_show, Scalar(0, 0, 255), 2);
+#endif
+		dstimg = img(rect_show);
+		cvtColor(dstimg, dstimg, COLOR_BGR2GRAY);
 	}
 }
 //简单进行旋转
@@ -162,14 +200,23 @@ void Location::retate()
 {
 	if (center.x != 0 && center.y != 0 && angle != 0)
 	{
-		angle = angle * 180.0 / 3.1415;
-		angle = 135 - angle;
 		double scale = 1.0;
+		angle *= 57.297;// == angle = angle * 180.0 / 3.1415;
+		angle = 135 - angle;
+
+		Point center = Point(dstimg.cols / 2, dstimg.rows / 2);
 		Mat rotMat(2, 3, CV_32FC1);
 		rotMat = getRotationMatrix2D(center, angle, scale);
-		warpAffine(img_show, img_show, rotMat, img_show.size());
-	}
 
+		//重新获取图像大小
+		Rect bbox = cv::RotatedRect(center, dstimg.size(), angle).boundingRect();
+		double *p = rotMat.ptr<double>(0) + 2;
+		*p += (bbox.width >> 1) - center.x;
+		p = rotMat.ptr<double>(1) + 2;
+		*p += (bbox.height >> 1) - center.y;
+		//进行旋转
+		warpAffine(dstimg, dstimg, rotMat, bbox.size());
+	}
 }
 //执行
 void Location::located()

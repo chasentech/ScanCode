@@ -19,7 +19,8 @@ private:
 	Point center;	//二维码旋转中心
 	float angle;	//二维码旋转角度
 
-	int judge_point(Point point1, Point point2, Point point);
+	Rect judge_area(Point point1, Point point2, Point point3, Point point4);
+
 	void point_locat();		//定位二维码四个点
 	void rotate_info();		//得到旋转信息
 	void retate();			//进行旋转
