@@ -17,11 +17,10 @@ void recognized(Mat &img)
 
 	//输出结果
 	if (imageZbar.symbol_begin() == imageZbar.symbol_end())
-		cout << "ScanCode is failed" << endl;
+		cout << "    ScanCode is failed" << endl;
 	for (; symbol != imageZbar.symbol_end(); ++symbol)
 	{
-		cout << "类型：" << endl << symbol->get_type_name() << endl << endl;
-		cout << "条码：" << endl << symbol->get_data() << endl << endl;
+		cout << "    类型：" << symbol->get_type_name() << "条码：" << symbol->get_data() << endl;
 	}
 	imageZbar.set_data(NULL, 0);	//释放
 	//imshow("img", img);

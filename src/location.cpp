@@ -50,10 +50,8 @@ void Location::point_locat()
 {
 	Mat img_gray;
 	cvtColor(img, img_gray, COLOR_BGR2GRAY);		//灰度化
-	imshow("test1", img);
-
 	mythreshold(img_gray, 100);					//二值化
-	imshow("二值化", img);
+	imshow("二值化", img_gray);
 
 	vector<Rect> rect;
 	Mat temp = img_gray.clone();
@@ -108,9 +106,9 @@ void Location::rotate_info()
 	if (point1.x != 0 && point1.y != 0)
 	{
 		//找出三个点所构成的三角形的斜边
-		int long1 = fabs(point2.x - point3.x) + fabs(point2.y - point3.y);
-		int long2 = fabs(point1.x - point3.x) + fabs(point1.y - point3.y);
-		int long3 = fabs(point1.x - point2.x) + fabs(point1.y - point2.y);
+		int long1 = abs(point2.x - point3.x) + abs(point2.y - point3.y);
+		int long2 = abs(point1.x - point3.x) + abs(point1.y - point3.y);
+		int long3 = abs(point1.x - point2.x) + abs(point1.y - point2.y);
 
 		int mark = 0;
 		if (long1 > long2)
@@ -143,7 +141,7 @@ void Location::rotate_info()
 				//cout << "angle=" << angle * 180.0 / 3.1415 << endl;
 				circle(img_show, point4, 16, Scalar(0, 255, 0), 2);
 				circle(img_show, center, 8, Scalar(0, 255, 0), 2);
-				line(img_show, center, point2, Scalar(255, 0, 0), 2);
+				line(img_show, center, point1, Scalar(255, 0, 0), 2);
 #endif
 			break;
 			//point2为直角点
@@ -183,7 +181,7 @@ void Location::rotate_info()
 				//cout << "angle=" << angle * 180.0 / 3.1415 << endl;
 				circle(img_show, point4, 16, Scalar(0, 255, 0), 2);
 				circle(img_show, center, 8, Scalar(0, 255, 0), 2);
-				line(img_show, center, point2, Scalar(255, 0, 0), 2);
+				line(img_show, center, point3, Scalar(255, 0, 0), 2);
 #endif
 			break;
 		}
